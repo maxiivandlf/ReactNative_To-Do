@@ -9,14 +9,15 @@ import {
   Alert,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import todoData from '../data/MOCK_DATA.json';
 
 function AddTask() {
   const [show, setShow] = useState(false);
-  const [text, setText] = useState('');
+  const [task, setTask] = useState('');
   const [date, setDate] = useState(new Date());
   const [hora, setHora] = useState();
   const [minutos, setMinutos] = useState();
-  const [isToday, setIsToday] = useState(false);
+  const [isToday, setIsToday] = useState(true);
 
   const onChange = (event, selectedDate) => {
     setShow(!setShow);
@@ -26,20 +27,32 @@ function AddTask() {
   };
 
   const handleDone = () => {
-    if (text !== '' && hora) {
+    if ((task !== '' && hora) || minutos) {
       Alert.alert(
         'Tarea cargada',
-        `Tarea: ${text} \n Hora: ${hora}: ${minutos} `,
+        `Tarea: ${task} \n Hora: ${hora}: ${minutos} `,
         [
           {
             text: 'OK',
             // onPress: () => console.log('Cancelado'),
-            style: 'destructive',
           },
         ]
       );
+
+      // const taskTemp = {
+      //   id: todoData.length + 1,
+      //   task: task,
+      //   isCompleted: false,
+      //   isToday: isToday,
+      //   hora: `${hora}:${minutos}`,
+      // };
+
+      // console.log(taskTemp);
+
+      // todoData.push(taskTemp);
+      // console.log(todoData);
     } else {
-      Alert.alert('Alerta', 'Debe ingresar una tarea y un horio', [
+      Alert.alert('⚠️ Alerta ', 'Debe ingresar una tarea y un horario', [
         {
           text: 'OK',
           // onPress: () => console.log('Cancelado'),
@@ -59,7 +72,7 @@ function AddTask() {
           placeholder='Add you task'
           placeholderTextColor='#00000050'
           onChange={(event) => {
-            setText(event.nativeEvent.text);
+            setTask(event.nativeEvent.text);
           }}
         />
       </View>
