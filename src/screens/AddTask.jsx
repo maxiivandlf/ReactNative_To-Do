@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import todoData from '../data/MOCK_DATA.json';
+// import todoData from '../data/MOCK_DATA.json';
 
 function AddTask() {
   const [show, setShow] = useState(false);
