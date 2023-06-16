@@ -9,15 +9,22 @@ import {
   Alert,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-// import todoData from '../data/MOCK_DATA.json';
+import { useDispatch, useSelector } from 'react-redux';
+import { addTodosReducer } from '../redux/todosSlice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 
 function AddTask() {
   const [show, setShow] = useState(false);
   const [task, setTask] = useState('');
   const [date, setDate] = useState(new Date());
   const [hora, setHora] = useState();
+  const listTodos = useSelector((state) => state.todos.todos);
   const [minutos, setMinutos] = useState();
   const [isToday, setIsToday] = useState(true);
+
+  const dispatch = useDispatch();
+  const navigation = useNavigation();
 
   const onChange = (event, selectedDate) => {
     setShow(!setShow);
@@ -26,11 +33,32 @@ function AddTask() {
     setMinutos(selectedDate.getMinutes());
   };
 
+  const addTodo = async () => {
+    const newTodo = {
+      id: Math.floor(Math.random() * 1000000),
+      task: task,
+      isCompleted: false,
+      isToday: isToday,
+      hora: date.toString(),
+    };
+    try {
+      await AsyncStorage.setItem(
+        '@Todos',
+        JSON.stringify([...listTodos, newTodo])
+      );
+      dispatch(addTodosReducer(newTodo));
+      console.log('TODO GUARDADO');
+      navigation.goBack();
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   const handleDone = () => {
     if ((task !== '' && hora) || minutos) {
       Alert.alert(
         'Tarea cargada',
-        `Tarea: ${task} \n Hora: ${hora}: ${minutos} `,
+        `Tarea: ${task} \n Hora: ${hora}:${minutos} `,
         [
           {
             text: 'OK',
@@ -38,19 +66,7 @@ function AddTask() {
           },
         ]
       );
-
-      // const taskTemp = {
-      //   id: todoData.length + 1,
-      //   task: task,
-      //   isCompleted: false,
-      //   isToday: isToday,
-      //   hora: `${hora}:${minutos}`,
-      // };
-
-      // console.log(taskTemp);
-
-      // todoData.push(taskTemp);
-      // console.log(todoData);
+      addTodo();
     } else {
       Alert.alert('⚠️ Alerta ', 'Debe ingresar una tarea y un horario', [
         {
@@ -95,7 +111,6 @@ function AddTask() {
 
       {show && (
         <DateTimePicker
-          accessibilityLanguage='Arg'
           testID='dateTimePicker'
           value={date}
           mode={'time'}

@@ -1,33 +1,46 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Constants from 'expo-constants';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import TodoList from '../components/TodoList';
-import todoData from '../data/MOCK_DATA.json';
+
 import { useNavigation } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { hideComplitedReducer, setTodosReducer } from '../redux/todosSlice';
 
 function Home() {
-  const [localData, setLocalData] = useState(
-    todoData.sort((a, b) => {
-      return a.isCompleted - b.isCompleted;
-    })
-  );
-
+  const Todos = useSelector((state) => state.todos.todos);
   const [isHidden, setIsHiden] = useState(false);
   const navigation = useNavigation();
+  const dispatch = useDispatch();
 
-  const handleHidePress = () => {
+  useEffect(() => {
+    const getTodos = async () => {
+      try {
+        const Todos = await AsyncStorage.getItem('@Todos');
+        if (Todos !== null) {
+          dispatch(setTodosReducer(JSON.parse(Todos)));
+        }
+      } catch (e) {
+        //console.log(e);
+      }
+    };
+    getTodos();
+  }, []);
+
+  const handleHideCompleted = async () => {
     if (isHidden) {
       setIsHiden(false);
-      setLocalData(
-        todoData.sort((a, b) => {
-          return a.isCompleted - b.isCompleted;
-        })
-      );
+      const todos = await AsyncStorage.getItem('@Todos');
+      if (todos !== null) {
+        dispatch(setTodosReducer(JSON.parse(todos)));
+      }
+
       return;
     }
-
     setIsHiden(!isHidden);
-    setLocalData(localData.filter((todo) => !todo.isCompleted));
+    dispatch(hideComplitedReducer());
+    // setLocalData(localData.filter(item => item.isCompleted === false));
   };
 
   return (
@@ -41,16 +54,15 @@ function Home() {
       </View>
       <View style={styles.todoHeader}>
         <Text style={styles.title}>Today</Text>
-        <TouchableOpacity style={styles.btnHidde} onPress={handleHidePress}>
+        <TouchableOpacity style={styles.btnHidde} onPress={handleHideCompleted}>
           <Text style={{ color: '#FFF' }}>
-            {' '}
             {isHidden ? 'Show completed' : 'Hide completed'}
           </Text>
         </TouchableOpacity>
       </View>
-      <TodoList todoData={localData.filter((todo) => todo.isToday)} />
+      <TodoList todoData={Todos.filter((todo) => todo.isToday)} />
       <Text style={styles.title}>Tomorrow</Text>
-      <TodoList todoData={todoData.filter((todo) => !todo.isToday)} />
+      <TodoList todoData={Todos.filter((todo) => !todo.isToday)} />
       <TouchableOpacity
         onPress={() => navigation.navigate('Add')}
         style={styles.button}>

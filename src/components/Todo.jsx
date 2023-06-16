@@ -1,9 +1,31 @@
-import React from 'react';
-import { Text, View, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
 import Checkbox from './Checkbox';
+import moment from 'moment/moment';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useDispatch, useSelector } from 'react-redux';
+import { deleteTodoReducer } from '../redux/todosSlice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function Todo(props) {
-  const { id, isCompleted, task, hora } = props;
+  const { id, isCompleted, task, hora } = { ...props };
+  const [localHour, setLocalHour] = useState(new Date(hora));
+
+  const todos = useSelector((state) => state.todos.todos);
+  const dispach = useDispatch();
+
+  const handleDeleteTodo = async () => {
+    dispach(deleteTodoReducer(id));
+    try {
+      await AsyncStorage.setItem(
+        '@Todos',
+        JSON.stringify(todos.filter((todo) => todo.id !== id))
+      );
+      console.log('Todo deleted correctly');
+    } catch (e) {
+      console.log(e);
+    }
+  };
   return (
     <View style={styles.container} key={id}>
       <Checkbox {...props} />
@@ -28,9 +50,17 @@ function Todo(props) {
                 ]
               : styles.hora
           }>
-          Hora : {hora}
+          Hora :{moment(localHour).format('LT')}
         </Text>
       </View>
+      <TouchableOpacity onPress={handleDeleteTodo}>
+        <MaterialIcons
+          name='delete-outline'
+          size={24}
+          color='#73737340'
+          style={styles.delete}
+        />
+      </TouchableOpacity>
     </View>
   );
 }
